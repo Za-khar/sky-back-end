@@ -7,10 +7,13 @@ import {
   ManyToMany,
   OneToMany,
   JoinTable,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm'
 import { Topic } from './topic.entity'
 import { Comment } from './comment.entity'
 import { ArticleLike } from './articleLike.entity'
+import { User } from './user.entity'
 
 @Entity()
 export class Article {
@@ -29,13 +32,22 @@ export class Article {
   @UpdateDateColumn()
   updatedAt: Date
 
-  @ManyToMany(() => Topic, (topic) => topic.articles)
+  @OneToMany(() => Comment, (comment) => comment.article, { cascade: true })
+  comments: Comment[]
+
+  @OneToMany(() => ArticleLike, (articleLike) => articleLike.article, { cascade: true })
+  articleLikes: ArticleLike[]
+
+  // many - one
+  @ManyToOne(() => User, (user) => user.articles, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'userId' })
+  user: User
+
+  // many - many
+  @ManyToMany(() => Topic, (topic) => topic.articles, { onDelete: 'CASCADE' })
   @JoinTable({ name: 'article_topics_list' })
   topics: Topic[]
 
-  @OneToMany(() => Comment, (comment) => comment.article)
-  comments: Comment[]
-
-  @OneToMany(() => ArticleLike, (articleLike) => articleLike.article)
-  articleLikes: ArticleLike[]
+  @ManyToMany(() => User, (user) => user.savedArticles)
+  savedByUsers: User[]
 }

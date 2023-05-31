@@ -9,6 +9,9 @@ import { AppDataSource } from 'app-data-source'
 import { authenticate, authorizeUser } from '@middlewares/auth.middleware'
 import { authRouter } from '@routes/auth.router'
 import { userRouter } from '@routes/user.router'
+import { topicRouter } from '@routes/topic.router'
+import { articleRouter } from '@routes/article.router'
+import { commentRouter } from '@routes/comment.route'
 
 const app: Application = express()
 
@@ -25,11 +28,14 @@ app.use(morgan('tiny'))
 // Handle errors
 
 app.use('/auth', authRouter)
+app.use('/topic', topicRouter)
 
 app.use(authenticate)
 app.use(authorizeUser)
 
 app.use('/user', userRouter)
+app.use('/article', articleRouter)
+app.use('/comment', commentRouter)
 
 app.use(handleNotFound)
 app.use(handleErrors)

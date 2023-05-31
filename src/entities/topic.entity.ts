@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToMany } from 'typeorm'
 import { Article } from './article.entity'
+import { User } from './user.entity'
 
 @Entity()
 export class Topic {
@@ -15,6 +16,9 @@ export class Topic {
   @UpdateDateColumn()
   updatedAt: Date
 
-  @ManyToMany(() => Article, (article) => article.topics)
+  @ManyToMany(() => Article, (article) => article.topics, { onDelete: 'CASCADE' })
   articles: Article[]
+
+  @ManyToMany(() => User, (user) => user.topics, { onDelete: 'CASCADE' })
+  users: User[]
 }

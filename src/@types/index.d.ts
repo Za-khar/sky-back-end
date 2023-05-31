@@ -4,6 +4,7 @@ declare namespace Express {
     user: {
       id: string
       login: string
+      avatar: string
       password: string
       name: string
       surname: string

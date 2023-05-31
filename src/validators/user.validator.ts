@@ -1,4 +1,4 @@
-import { UpdateMyProfileRequestBody } from '@interfaces/user.interface'
+import { GetUserByIdRequestParams, UpdateMyProfileRequestBody } from '@interfaces/user.interface'
 import Joi from 'joi'
 
 export const updateMyProfileSchema = Joi.object<UpdateMyProfileRequestBody>({
@@ -13,4 +13,10 @@ export const updateMyProfileSchema = Joi.object<UpdateMyProfileRequestBody>({
   description: Joi.string().max(255).optional(),
 
   oldPassword: Joi.string().min(6).max(18).optional(),
+
+  avatar: Joi.binary().optional(),
+})
+
+export const getUserByIdSchema = Joi.object<GetUserByIdRequestParams>({
+  userId: Joi.string().uuid().required(),
 })

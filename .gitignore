@@ -25,3 +25,6 @@ out
 *.sublime-workspace
 *.sublime-project
 *.log
+
+# Ignore public files
+public/*/*

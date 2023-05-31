@@ -5,6 +5,8 @@ import { User } from 'entities/user.entity'
 import { NextFunction, Request, Response } from 'express'
 import { omit } from 'lodash'
 import bcrypt from 'bcrypt'
+import { NotFoundError } from '@errors/not-found.error'
+import { unlinkPhoto } from '@utils/unlink.util'
 
 export class UserController {
   static async getMyProfile(req: Request, res: Response, next: NextFunction) {
@@ -27,6 +29,8 @@ export class UserController {
 
       await userRepository.delete(userData.id)
 
+      unlinkPhoto(userData.avatar, 'avatars')
+
       res.status(200).json({ status: 'ok' })
     } catch (error) {
       next(error)
@@ -34,6 +38,9 @@ export class UserController {
   }
 
   static async updateMyProfile(req: Request, res: Response, next: NextFunction) {
+    const avatar = req?.file?.filename
+    const oldAvatar = req?.user?.avatar
+
     try {
       const userData = req.user
       const { login, password, name, surname, description, oldPassword } = req.body as UpdateMyProfileRequestBody
@@ -48,10 +55,6 @@ export class UserController {
         }
         userData.login = login
       }
-
-      userData.name = name || userData.name
-      userData.surname = surname || userData.surname
-      userData.description = description || userData.description
 
       if (password) {
         if (!oldPassword) {
@@ -70,11 +73,40 @@ export class UserController {
         userData.password = hashedPassword
       }
 
-      userData.updatedAt = new Date()
+      userData.avatar = avatar || oldAvatar
+      userData.name = name || userData.name
+      userData.surname = surname || userData.surname
+      userData.description = description || userData.description
 
-      userRepository.save(userData)
+      await userRepository.save(userData)
 
-      res.status(200).json(userData)
+      unlinkPhoto(oldAvatar, 'avatars')
+
+      const userDataRes = omit(userData, 'password')
+
+      res.status(200).json(userDataRes)
+    } catch (error) {
+      unlinkPhoto(avatar, 'avatars')
+      next(error)
+    }
+  }
+
+  static async getUserById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { userId } = req.params
+
+      const foundUser = await AppDataSource.getRepository(User)
+        .createQueryBuilder('user')
+        .where('user.id = :userId', { userId })
+        .getOne()
+
+      if (!foundUser) {
+        throw new NotFoundError({ message: 'User not found' })
+      }
+
+      const resUserData = omit(foundUser, 'password')
+
+      res.status(200).json(resUserData)
     } catch (error) {
       next(error)
     }
