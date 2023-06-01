@@ -9,7 +9,7 @@ export const handleErrors = (error: Error, _req: Request, res: Response, next: N
     return res.status(error.statusCode).json(error.serializeErrors())
   }
 
-  res.status(500).json('Internal Server Error')
+  return res.status(500).json('Internal Server Error')
 }
 
 export const handleNotFound = (_req: Request, res: Response, next: NextFunction) => {
