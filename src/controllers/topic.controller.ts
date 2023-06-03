@@ -8,16 +8,20 @@ import { Topic } from 'entities/topic.entity'
 import { NextFunction, Request, Response } from 'express'
 import { RequestValidationError } from '@errors/request-validation.error'
 import { User } from 'entities/user.entity'
+import _ from 'lodash'
 
 export class TopicController {
   static async getAllTopics(req: Request, res: Response, next: NextFunction) {
     try {
       const { skip, take, sortBy, order, searchTerm, userId } = req.query as GetAllTopicsRequestQuery
+      const userData = req.user
 
-      const queryBuilder = AppDataSource.getRepository(Topic).createQueryBuilder('topic')
+      const queryBuilder = AppDataSource.getRepository(Topic)
+        .createQueryBuilder('topic')
+        .leftJoinAndSelect('topic.users', 'user')
 
       if (userId) {
-        queryBuilder.leftJoin('topic.users', 'user').andWhere(`user.id = :userId`, { userId })
+        queryBuilder.andWhere(`user.id = :userId`, { userId })
       }
 
       if (searchTerm) {
@@ -29,7 +33,12 @@ export class TopicController {
       const topics = await paginationQueryBuilder.getMany()
       const totalCount = await queryBuilder.getCount()
 
-      res.status(200).json({ models: topics, totalCount: totalCount })
+      const formattedTopics = topics.map((topic) => ({
+        ..._.omit(topic, 'users'),
+        selected: topic.users.some((user) => user.id === userData.id),
+      }))
+
+      res.status(200).json({ models: formattedTopics, totalCount: totalCount })
     } catch (error) {
       next(error)
     }

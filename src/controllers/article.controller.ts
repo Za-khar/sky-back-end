@@ -9,6 +9,7 @@ import { ArticleLike } from 'entities/articleLike.entity'
 import { Topic } from 'entities/topic.entity'
 import { User } from 'entities/user.entity'
 import { NextFunction, Request, Response } from 'express'
+import _ from 'lodash'
 
 export class ArticleController {
   static async createArticle(req: Request, res: Response, next: NextFunction) {
@@ -122,24 +123,31 @@ export class ArticleController {
   static async getArticleById(req: Request, res: Response, next: NextFunction) {
     try {
       const { articleId } = req.params
+      const userData = req.user
 
       const foundArticle = await AppDataSource.getRepository(Article)
         .createQueryBuilder('article')
         .select(['article', 'user.id', 'user.name', 'user.surname', 'user.avatar', 'topic'])
         .leftJoin('article.user', 'user')
         .leftJoin('article.topics', 'topic')
-        .leftJoin('article.articleLikes', 'articleLike')
+        .leftJoinAndSelect('article.articleLikes', 'articleLike')
         .loadRelationCountAndMap('article.likesCount', 'article.articleLikes')
         .where('article.id = :articleId', { articleId })
         .getOne()
-
-      console.log(foundArticle)
 
       if (!foundArticle) {
         throw new NotFoundError({ message: 'Article not found' })
       }
 
-      res.status(200).json(foundArticle)
+      const articleLikes = await AppDataSource.getRepository(ArticleLike)
+        .createQueryBuilder('articleLike')
+        .leftJoinAndSelect('articleLike.user', 'user')
+        .where('articleLike.id IN (:...ids)', { ids: foundArticle?.articleLikes?.map((val) => val.id) ?? [] })
+        .getMany()
+
+      const liked = !!articleLikes.some((val) => val.user.id === userData.id)
+
+      res.status(200).json({ ..._.omit(foundArticle, 'articleLikes'), liked })
     } catch (error) {
       next(error)
     }

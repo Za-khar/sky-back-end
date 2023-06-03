@@ -6,7 +6,13 @@ import { Router } from 'express'
 
 export const topicRouter = Router()
 
-topicRouter.get('/all', validation(getAllTopicsSchema, 'query'), TopicController.getAllTopics)
+topicRouter.get(
+  '/all',
+  authenticate,
+  authorizeUser,
+  validation(getAllTopicsSchema, 'query'),
+  TopicController.getAllTopics,
+)
 
 topicRouter.post('/create', authenticate, authorizeUser, validation(createTopicSchema), TopicController.createTopic)
 
