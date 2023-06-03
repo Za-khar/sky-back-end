@@ -104,7 +104,7 @@ export class TopicController {
 
       await userRepository.save({ ...userData, topics: updatedUserTopics })
 
-      res.status(200).json(updatedUserTopics)
+      res.status(200).json({ ...foundTopic, selected: action === 'save' })
     } catch (error) {
       next(error)
     }
