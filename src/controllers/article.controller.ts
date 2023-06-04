@@ -139,13 +139,19 @@ export class ArticleController {
         throw new NotFoundError({ message: 'Article not found' })
       }
 
-      const articleLikes = await AppDataSource.getRepository(ArticleLike)
-        .createQueryBuilder('articleLike')
-        .leftJoinAndSelect('articleLike.user', 'user')
-        .where('articleLike.id IN (:...ids)', { ids: foundArticle?.articleLikes?.map((val) => val.id) ?? [] })
-        .getMany()
+      const formattedLikes = foundArticle?.articleLikes?.map((val) => val.id)
 
-      const liked = !!articleLikes.some((val) => val.user.id === userData.id)
+      let liked = false
+
+      if (formattedLikes?.length) {
+        const articleLikes = await AppDataSource.getRepository(ArticleLike)
+          .createQueryBuilder('articleLike')
+          .leftJoinAndSelect('articleLike.user', 'user')
+          .where('articleLike.id IN (:...ids)', { ids: formattedLikes })
+          .getMany()
+
+        liked = !!articleLikes.some((val) => val.user.id === userData.id)
+      }
 
       res.status(200).json({ ..._.omit(foundArticle, 'articleLikes'), liked })
     } catch (error) {
