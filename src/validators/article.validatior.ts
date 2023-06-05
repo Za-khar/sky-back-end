@@ -10,7 +10,7 @@ import { paginationSchema } from './common.validator'
 
 export const createArticleSchema = Joi.object<CreateArticleRequestBody>({
   title: Joi.string().min(1).max(50).required(),
-  text: Joi.string().min(1).max(1000).required(),
+  text: Joi.string().min(1).max(100000).required(),
   topics: Joi.array().items(Joi.string().uuid()).min(1).max(10).required(),
 })
 

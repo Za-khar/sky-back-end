@@ -23,7 +23,7 @@ export class Article {
   @Column({ length: 50 })
   title: string
 
-  @Column({ length: 1000 })
+  @Column({ length: 100000 })
   text: string
 
   @CreateDateColumn()

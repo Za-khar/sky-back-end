@@ -111,7 +111,6 @@ export class ArticleController {
 
       const articles = await paginationQueryBuilder.getMany()
 
-      console.log('articles: ', articles)
       const totalCount = await queryBuilder.getCount()
 
       res.status(200).json({ models: articles, totalCount: totalCount })

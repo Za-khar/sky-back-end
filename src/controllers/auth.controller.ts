@@ -124,7 +124,6 @@ export class AuthController {
         relations: { user: true },
       })
 
-      console.log(tokenEntity)
       if (!tokenEntity) {
         throw new RequestValidationError({ message: 'Refresh token missing' })
       }
